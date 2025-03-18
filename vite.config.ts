@@ -16,8 +16,8 @@ export default defineConfig({
   },
   root: path.resolve(__dirname, "client"),
   build: {
-    outDir: path.resolve(__dirname, "dist"), // Fix: No 'public' folder here
-    emptyOutDir: true,
+    outDir: path.resolve(__dirname, "docs"), // ✅ Change to "docs"
+    emptyOutDir: true, // Clears old files in docs
   },
-  base: "/nova-automata/", // Add this if deploying to GitHub Pages
+  base: "/new/", // ✅ Set to your repo name to load assets properly
 });
