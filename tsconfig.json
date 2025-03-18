@@ -1,32 +1,37 @@
 {
   "include": [
     "client/src/**/*",       // Includes all files in client/src
-    "shared/**/*",           // Includes all files in the shared folder (schema.ts)
-    "server/**/*"            // Includes all files in the server folder (email.ts, index.ts, routes.ts, storage.ts, vite.ts)
+    "shared/**/*",           // Includes all files in the shared folder (e.g., schema.ts)
+    "server/**/*"            // Includes all files in the server folder (e.g., email.ts, index.ts, routes.ts, storage.ts, vite.ts)
   ],
   "exclude": [
     "node_modules",          // Excludes node_modules to avoid unnecessary checks
     "build",                 // Excludes build folder
-    "dist",                  // Excludes dist folder
+    "docs",                  // Excludes documentation or dist folder
     "**/*.test.ts"           // Excludes test files if present
   ],
   "compilerOptions": {
     "incremental": true,                      // Enables incremental compilation for faster builds
-    "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo", // Path to store build info
-    "noEmit": true,                            // Do not emit output files, useful when only type-checking
+    "tsBuildInfoFile": "./node_modules/.cache/tsbuildinfo", // Store build info in cache
+    "noEmit": true,                            // Do not emit output files, only type-checking
     "module": "ESNext",                        // Using ESNext modules for modern JavaScript/TypeScript
+    "target": "ESNext",                        // Targeting latest JavaScript standards
     "strict": true,                            // Enforces strict type-checking
-    "lib": ["esnext", "dom", "dom.iterable"],  // Includes required libraries for Node, ES, and DOM
-    "jsx": "preserve",                        // Preserve JSX syntax for React projects
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],  // Includes required libraries for Node, ES, and DOM
+    "jsx": "preserve",                         // Preserve JSX syntax for React projects
     "esModuleInterop": true,                   // Enables compatibility with CommonJS modules
+    "allowSyntheticDefaultImports": true,      // Allow importing default exports from modules
     "skipLibCheck": true,                      // Skips library type checks to speed up the build
     "allowImportingTsExtensions": true,        // Allow importing .ts/.tsx extensions
-    "moduleResolution": "bundler",             // Use bundler for module resolution (e.g., Vite, Webpack)
+    "moduleResolution": "node",                // Use Node for module resolution
     "baseUrl": ".",                            // The base directory for resolving non-relative module imports
-    "types": ["node", "vite/client"],          // Include types for Node.js and Vite client (for Vite-specific types)
+    "types": ["node", "vite/client"],          // Include types for Node.js and Vite client
+    "resolveJsonModule": true,                 // Allows importing JSON modules
+    "isolatedModules": true,                   // Ensures each file is treated as a module
     "paths": {
       "@/*": ["./client/src/*"],               // Map '@' to the client/src directory
-      "@shared/*": ["./shared/*"]               // Map '@shared' to the shared directory
+      "@shared/*": ["./shared/*"],             // Map '@shared' to the shared directory
+      "@server/*": ["./server/*"]              // Map '@server' to the server directory
     }
   }
 }
