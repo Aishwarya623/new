@@ -2,7 +2,6 @@ import { pgTable, text, serial, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Contact Messages Table
 export const contactMessages = pgTable("contact_messages", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -11,17 +10,14 @@ export const contactMessages = pgTable("contact_messages", {
   company: text("company"),
 });
 
-// Users Table
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull(),
-  username: varchar("username", { length: 255 }).notNull(), // ✅ Use varchar(255)
-});
-
-// Validation Schema (Better Approach)
+// Enhanced validation schema
 export const insertContactSchema = createInsertSchema(contactMessages)
-  .omit({ id: true }) // ✅ Exclude `id`
+  .pick({
+    name: true,
+    email: true,
+    message: true,
+    company: true,
+  })
   .extend({
     name: z.string().min(1, "Name is required"),
     email: z.string().email("Invalid email address"),
@@ -29,8 +25,5 @@ export const insertContactSchema = createInsertSchema(contactMessages)
     company: z.string().optional(),
   });
 
-// Type Definitions
-export type User = typeof users.$inferSelect;
-export type InsertUser = typeof users.$inferInsert;
 export type InsertContact = z.infer<typeof insertContactSchema>;
 export type ContactMessage = typeof contactMessages.$inferSelect;

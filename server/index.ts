@@ -1,69 +1,60 @@
-import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import express from "express";
+import bodyParser from "body-parser";
+import cors from "cors";
+import dotenv from "dotenv";
+import nodemailer from "nodemailer";
+
+dotenv.config(); // Load environment variables
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+const PORT = process.env.PORT || 5000;
 
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+// ✅ Middleware
+app.use(cors());
+app.use(bodyParser.json()); // Ensure JSON parsing
 
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
-  });
-
-  next();
+// ✅ Setup Nodemailer Transporter
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: false, // Use TLS
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
 });
 
-(async () => {
-  const server = await registerRoutes(app);
+// ✅ Contact API Route
+app.post("/api/contact", async (req, res) => {
+  try {
+    const { name, email, message, company } = req.body;
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    if (!name || !email || !message) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
 
-    res.status(status).json({ message });
-    throw err;
-  });
+    console.log("Received contact form submission:", { name, email, message, company });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+    // 📩 Email Configuration
+    const mailOptions = {
+      from: process.env.SMTP_FROM,
+      to: "paishwarya623@gmail.com", // Hardcoded email for testing
+      subject: "New Contact Form Submission",
+      text: `Name: ${name}\nEmail: ${email}\nCompany: ${company || "N/A"}\nMessage:\n${message}`,
+    };
+
+    // ✅ Send Email
+    await transporter.sendMail(mailOptions);
+
+    console.log("Email sent successfully");
+    res.status(200).json({ success: true, message: "Message received successfully" });
+  } catch (error) {
+    console.error("Error sending contact email:", error);
+    res.status(500).json({ success: false, message: "Failed to send message" });
   }
+});
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
-})();
+// ✅ Start Server
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});

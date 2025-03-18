@@ -9,6 +9,9 @@ import { Loader2 } from "lucide-react";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import ScrollToTop from "@/components/common/ScrollToTop";
 import PageTransition from "@/components/common/PageTransition";
+import { Link } from 'wouter';
+import dotenv from 'dotenv';
+dotenv.config();  // This loads the .env file
 
 // Lazy load pages
 const Home = lazy(() => import("@/pages/Home"));
